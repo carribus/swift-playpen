@@ -8,4 +8,28 @@
 
 // UP TO GENERICS (Page 25)
 
-print("Generics")
+func repeatItem<Item>(item: Item, numberOfTimes: Int) -> [Item] {
+    var result = [Item]()
+    
+    for _ in 0..<numberOfTimes {
+        result.append(item)
+    }
+    return result
+}
+
+var items = repeatItem("knock", numberOfTimes: 4)
+print(items)
+print(items.count)
+
+enum OptionalValue<Wrapped> {
+    case    None
+    case    Some(Wrapped)
+}
+
+var possibleInteger: OptionalValue<Int> = .None
+print(possibleInteger)
+possibleInteger = .Some(100)
+print(possibleInteger)
+
+
+
