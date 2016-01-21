@@ -7,3 +7,5 @@
 //
 
 // UP TO GENERICS (Page 25)
+
+print("Generics")
