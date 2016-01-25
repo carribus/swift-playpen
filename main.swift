@@ -5,61 +5,130 @@
 //  Copyright © 2016 Peter Mares. All rights reserved.
 //
 
-// classes and structures
+// Properties
 
 struct Point {
-    var x = 0
-    var y = 0
+    var x = 0.0
+    var y = 0.0
+    
+    // the 'mutating' keyword below allows the immutable structure's method to mutate the underlying properties
+    // of the structure. This is done because structures (and enumerations) are value types and are, by default,
+    // immutable
+    mutating func moveBy(x: Double, _ y: Double) {
+        self.x += x
+        self.y += y
+    }
 }
 
-class CPoint {
-    var x = 0
-    var y = 0
+struct Size {
+    var width = 0.0
+    var height = 0.0
 }
 
-var pt1 = Point(x: 1, y: 1)
-var pt2 = CPoint()
-
-var pt3 = pt1;
-
-pt1.x = 10
-pt3.y = 10
-print(pt1)
-print(pt3)
-
-var pt4 = pt2;
-
-pt2.x = 20
-pt4.y = 10
-print("\(pt2.x), \(pt2.y)")
-print("\(pt4.x), \(pt4.y)")
-
-struct PointDupe {
-    var name = ""
-    var point = CPoint()
+struct Rect {
+    var origin = Point()
+    var size = Size()
+    // calculated property
+    var center: Point {
+        get {
+            let centerX = origin.x + (size.width / 2)
+            let centerY = origin.y + (size.height / 2)
+            return Point(x: centerX, y: centerY)
+        }
+        set /*(newCenter)*/ {
+//            origin.x = newCenter.x - (size.width / 2)
+//            origin.y = newCenter.y - (size.height / 2)
+            origin.x = newValue.x - (size.width / 2)
+            origin.y = newValue.y - (size.height / 2)
+        }
+    }
 }
 
-var pd1 = PointDupe()
-var pd2: PointDupe
-
-pd1.name = "pd1"
-pd2 = pd1
-pd2.name = "pd2"
-pd1.point.x = 10
-
-print("\(pd1.name): x=\(pd1.point.x), y=\(pd1.point.y)")
-print("\(pd2.name): x=\(pd2.point.x), y=\(pd2.point.y)")
+var square = Rect(origin: Point(x: 0.0, y: 0.0), size: Size(width: 10.0, height: 10.0))
+let initialSquareCenter = square.center
+square.center = Point(x: 15.0, y: 15.0)
+print("square.origin is not at \(square.origin.x), \(square.origin.y)")
 
 
-// Identity operators (=== and ==!)
-if ( pd1.point === pd2.point ) {
-    print("pd1.point === pd2.point")
+// read only properties
+struct Cuboid {
+    var width = 0.0, height = 0.0, depth = 0.0
+    var volume: Double {
+        return width * height * depth
+    }
 }
 
-pd1.point = CPoint()
-if ( pd1.point === pd2.point ) {
-    print("pd1.point === pd2.point")
-} else {
-    print("pd1.point !== pd2.point")
+let fourByFiveByTwo = Cuboid(width: 4.0, height: 5.0, depth: 2.0)
+print("Cuboid volume = \(fourByFiveByTwo.volume)")
+
+
+// Property Observers
+class StepCounter {
+    var totalSteps: Int = 0 {
+        willSet(newTotalSteps) {
+            print("About to set totalSteps to \(newTotalSteps)")
+        }
+        didSet {
+            if totalSteps > oldValue {
+                print("Added \(totalSteps - oldValue) steps")
+            }
+        }
+    }
 }
+
+// global property observer
+let stepCounter = StepCounter()
+var stepCountDoubled: Int {
+    return stepCounter.totalSteps*2
+}
+stepCounter.totalSteps = 200
+print("stepCountDoubled = \(stepCountDoubled)")
+stepCounter.totalSteps = 360
+print("stepCountDoubled = \(stepCountDoubled)")
+stepCounter.totalSteps = 896
+print("stepCountDoubled = \(stepCountDoubled)")
+
+
+class Base {
+    static var value: Int = 0
+    var instanceValue: Int = 0
+    
+    // this static method will not be able to be overridden because the 'static' keyword was used
+    static func decValue(decBy: Int) -> Int {
+        value -= decBy
+        return value
+    }
+    
+    // this static method is overridable since the 'class' keyword was used
+    class func incValue(incBy: Int) -> Int {
+        value += incBy
+        return value
+    }
+    
+    func incInstanceValue(incBy: Int) -> Int {
+        instanceValue += incBy
+        return instanceValue
+    }
+}
+
+class Subclass: Base {
+    override class func incValue(incBy: Int) -> Int {
+        super.incValue(-incBy)
+        return value
+    }
+}
+
+var b = Base()
+var s = Subclass()
+
+print("Base.value = \(Base.value)")
+print("Subclass.value = \(Subclass.value)")
+Subclass.incValue(2)
+print("Base.value = \(Base.value)")
+print("Subclass.value = \(Subclass.value)")
+Base.incValue(2)
+print("Base.value = \(Base.value)")
+print("Subclass.value = \(Subclass.value)")
+
+
 
